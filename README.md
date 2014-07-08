@@ -15,6 +15,8 @@ different colors of wool. To retrieve these, they would only need to type /invsw
 Saving an inventory is just as simple. Just type /invswap save \<name of save\> and then you can load it
 using the aforementioned command.
 
+When saving, the positions in your inventory are kept.
+
 To Do List
 ----------
 
