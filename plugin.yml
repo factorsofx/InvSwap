@@ -1,0 +1,10 @@
+main: com.elan_oots.invswap.InvSwap
+name: InventorySwap
+version: 1.0
+
+author: elan_oots
+description: Allows you to have multiple inventories that you can swap to
+
+commands:
+  invswap:
+    description: Allows you to swap between your inventories
