@@ -3,11 +3,13 @@ package com.elan_oots.invswap;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 import java.util.logging.Level;
 
 import org.bukkit.ChatColor;
-import org.bukkit.Color;
+import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -26,8 +28,9 @@ public class InvSwap extends JavaPlugin
 			
 			File playerfile = new File(this.getDataFolder(), player.getUniqueId().toString());
 			
-			if(args.length == 2)
+			switch(args.length)
 			{
+				case 2:
 				switch(args[0])
 				{
 				case "save":
@@ -41,17 +44,17 @@ public class InvSwap extends JavaPlugin
 					
 					if(currentinv == null)
 					{
-						sender.sendMessage(Color.RED + "Error, inventory is null");
+						sender.sendMessage(ChatColor.RED + "Error, inventory is null");
 						return true;
 					}
-					
+						
 					String inv = InvIO.invToString(currentinv);
 					
 					File invsave = new File(playerfile, invname);
 					
 					if(invsave.exists())
 					{
-						sender.sendMessage(Color.YELLOW + "Overwriting previous save");
+						sender.sendMessage(ChatColor.YELLOW + "Overwriting previous save");
 					}
 					
 					try
@@ -62,7 +65,7 @@ public class InvSwap extends JavaPlugin
 					}
 					catch(FileNotFoundException e)
 					{
-						sender.sendMessage(Color.RED + "An error occurred while attempting to save your inventory.");
+						sender.sendMessage(ChatColor.RED + "An error occurred while attempting to save your inventory.");
 						this.getServer().getLogger().log(Level.WARNING, "Player " + player.getName() + " could not save inventory.");
 					}
 					break;
@@ -77,52 +80,54 @@ public class InvSwap extends JavaPlugin
 							
 							reader.close();
 							
-							Inventory inventory = InvIO.stringToInv(invstring);
 							Inventory playerinv = player.getInventory();
+							List<InvIO.JSONItemStack> inventory = InvIO.stringToItemList(invstring);
 							
 							playerinv.clear();
 							
-							for(ItemStack item : inventory)
+							for(InvIO.JSONItemStack item : inventory)
 							{
-								if(item != null)
-								{
-									playerinv.addItem(item);
-								}
+								ItemStack itemstack = new ItemStack(Material.getMaterial(item.material), item.amount);
+								itemstack.setDurability(item.damage);
+								playerinv.setItem(item.position, itemstack);
 							}
 						}
 						catch(FileNotFoundException e)
 						{
-							player.sendMessage(Color.RED + "An error occurred while attempting to load your inventory.");
+							player.sendMessage(ChatColor.RED + "An error occurred while attempting to load your inventory.");
 							this.getServer().getLogger().log(Level.WARNING, "Player " + player.getName() + " could not load inventory.");
 						}
 					}
 					else
 					{
-						player.sendMessage(Color.RED + "Inventory could not be found. Use /invswap list to see your inventories.");
+						player.sendMessage(ChatColor.RED + "Inventory could not be found. Use /invswap list to see your inventories.");
 					}
 					break;
 				}
-				if(args.length == 1)
+				case 1:
+				switch(args[0])
 				{
-					switch(args[0])
+				case "list":
+					File[] invs = playerfile.listFiles();
+					
+					List<String> strings = new ArrayList<String>();
+					
+					for(File f : invs)
 					{
-					case "list":
-						File[] invs = playerfile.listFiles();
-						
-						StringBuilder list = new StringBuilder();
-						
-						for(File f : invs)
-						{
-							list.append(ChatColor.GREEN + f.getName());
-						}
-						return true;
+						strings.add(ChatColor.GREEN + f.getName());
 					}
+					player.sendMessage(ChatColor.GRAY + "All of your inventories:");
+					for(String string : strings)
+					{
+						player.sendMessage(string);
+					}
+					return true;
 				}
 			}
 		}
 		else
 		{
-			sender.sendMessage(Color.RED + "Only players can use that command");
+			sender.sendMessage(ChatColor.RED + "Only players can use that command");
 			return true;
 		}
 		return false;

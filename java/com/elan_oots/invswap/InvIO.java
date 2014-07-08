@@ -1,8 +1,9 @@
 package com.elan_oots.invswap;
 
-import org.bukkit.Bukkit;
-import org.bukkit.Material;
-import org.bukkit.event.inventory.InventoryType;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.bukkit.craftbukkit.libs.com.google.gson.Gson;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
@@ -10,36 +11,67 @@ public class InvIO
 {
 	public static String invToString(Inventory inv)
 	{
-		StringBuilder string = new StringBuilder(inv.getSize() * 2);
-		for(ItemStack i : inv.getContents())
+		Gson gson = new Gson();
+		
+		List<JSONItemStack> items = new ArrayList<JSONItemStack>();
+		
+		for(int i = 0; i < inv.getSize(); i++)
 		{
-			if(i != null)
+			if(inv.getItem(i) != null)
 			{
-				string.append(i.getAmount());
-				string.append(";");
-				string.append(i.getType().toString());
-				string.append(";");
-				string.append(i.getDurability());
-				string.append("@");
+				items.add(new JSONItemStack(inv.getItem(i), i));
 			}
 		}
 		
-		return string.toString();
+		StringBuilder sb = new StringBuilder();
+		for(JSONItemStack item : items)
+		{
+			sb.append(gson.toJson(item) + ";");
+		}
+		
+		return sb.toString();
 	}
 	
-	public static Inventory stringToInv(String string)
+	public static List<JSONItemStack> stringToItemList(String string)
 	{
-		Inventory inv = Bukkit.createInventory(null, InventoryType.PLAYER);
+		List<JSONItemStack> inv = new ArrayList<JSONItemStack>();
 		
-		String[] entries = string.split("@");
-		for(String s : entries)
+		Gson gson = new Gson();
+		
+		String[] items = string.split(";");
+		
+		for(String itemstr : items)
 		{
-			String[] entry = s.split(";");
-			ItemStack i = new ItemStack(Material.getMaterial(entry[1]), Integer.parseInt(entry[0]));
-			i.setDurability(Short.parseShort(entry[2]));
-			inv.addItem(i);
+			JSONItemStack item = gson.fromJson(itemstr, JSONItemStack.class);
+			inv.add(item);
 		}
 		
 		return inv;
+	}
+	
+	public static class JSONItemStack
+	{
+		public int amount;
+		public String material;
+		public short damage;
+		public int position;
+		
+		public JSONItemStack(ItemStack item, int position)
+		{
+			if(item != null)
+			{
+				this.amount = item.getAmount();
+				this.material = item.getType().toString();
+				this.damage = item.getDurability();
+				this.position = position;
+			}
+			else
+			{
+				this.amount = -1;
+				this.material = "null";
+				this.damage = 0;
+				this.position = position;
+			}
+		}
 	}
 }
