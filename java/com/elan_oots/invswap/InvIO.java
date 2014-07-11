@@ -1,77 +1,30 @@
 package com.elan_oots.invswap;
 
-import java.util.ArrayList;
+import java.io.File;
 import java.util.List;
 
-import org.bukkit.craftbukkit.libs.com.google.gson.Gson;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
 public class InvIO
 {
-	public static String invToString(Inventory inv)
+	public static YamlConfiguration invToConfig(Inventory inv)
 	{
-		Gson gson = new Gson();
+		YamlConfiguration config = new YamlConfiguration();
 		
-		List<JSONItemStack> items = new ArrayList<JSONItemStack>();
+		config.set("inventory", inv.getContents());
 		
-		for(int i = 0; i < inv.getSize(); i++)
-		{
-			if(inv.getItem(i) != null)
-			{
-				items.add(new JSONItemStack(inv.getItem(i), i));
-			}
-		}
-		
-		StringBuilder sb = new StringBuilder();
-		for(JSONItemStack item : items)
-		{
-			sb.append(gson.toJson(item) + ";");
-		}
-		
-		return sb.toString();
+		return config;
 	}
 	
-	public static List<JSONItemStack> stringToItemList(String string)
+	@SuppressWarnings("unchecked")
+	public static List<ItemStack> fileToInventory(File invfile, boolean compressed)
 	{
-		List<JSONItemStack> inv = new ArrayList<JSONItemStack>();
+		YamlConfiguration config = null;
 		
-		Gson gson = new Gson();
+		config = YamlConfiguration.loadConfiguration(invfile);
 		
-		String[] items = string.split(";");
-		
-		for(String itemstr : items)
-		{
-			JSONItemStack item = gson.fromJson(itemstr, JSONItemStack.class);
-			inv.add(item);
-		}
-		
-		return inv;
-	}
-	
-	public static class JSONItemStack
-	{
-		public int amount;
-		public String material;
-		public short damage;
-		public int position;
-		
-		public JSONItemStack(ItemStack item, int position)
-		{
-			if(item != null)
-			{
-				this.amount = item.getAmount();
-				this.material = item.getType().toString();
-				this.damage = item.getDurability();
-				this.position = position;
-			}
-			else
-			{
-				this.amount = -1;
-				this.material = "null";
-				this.damage = 0;
-				this.position = position;
-			}
-		}
+		return (List<ItemStack>) config.get("inventory");
 	}
 }

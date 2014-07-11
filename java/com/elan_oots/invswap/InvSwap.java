@@ -1,17 +1,17 @@
 package com.elan_oots.invswap;
 
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.PrintWriter;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 import java.util.logging.Level;
 
 import org.bukkit.ChatColor;
-import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
@@ -19,6 +19,34 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 public class InvSwap extends JavaPlugin
 {
+	public YamlConfiguration config;
+	public YamlConfiguration defaultconfig;
+	
+	@Override
+	public void onEnable()
+	{
+		InputStreamReader defconfigreader = new InputStreamReader(this.getClass().getClassLoader().getResourceAsStream("defaultconfig.yml"));
+		defaultconfig = YamlConfiguration.loadConfiguration(defconfigreader);
+		
+		File userconfig = new File(this.getDataFolder(), "config.yml");
+		if(!userconfig.exists())
+		{
+			try
+			{
+				this.getLogger().log(Level.INFO, "No configuration file exists, creating one now");
+				userconfig.createNewFile();
+				defaultconfig.save(userconfig);
+			}
+			catch(IOException e)
+			{
+				this.getLogger().log(Level.WARNING, "Could not create config file, using default");
+				config = defaultconfig;
+			}
+		}
+		config = YamlConfiguration.loadConfiguration(userconfig);
+		this.getLogger().log(Level.CONFIG, "Max allowed inventories: " + config.getInt("maxinventories"));
+	}
+	
 	@Override
 	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args)
 	{
@@ -26,14 +54,23 @@ public class InvSwap extends JavaPlugin
 		{
 			Player player = (Player) sender;
 			
-			File playerfile = new File(this.getDataFolder(), player.getUniqueId().toString());
+			File playerfile = new File(new File(this.getDataFolder(), "inventories"), player.getUniqueId().toString());
+			File publicsaves = new File(this.getDataFolder(), "public");
+			
+			String ext = "";
 			
 			switch(args.length)
 			{
-				case 2:
+			case 2:
 				switch(args[0])
 				{
 				case "save":
+					if(!player.hasPermission("invswap.save"))
+					{
+						player.sendMessage(ChatColor.RED + "You do not have permission to do that");
+						return true;
+					}
+					
 					if(!playerfile.exists())
 					{
 						playerfile.mkdirs();
@@ -41,16 +78,18 @@ public class InvSwap extends JavaPlugin
 					
 					Inventory currentinv = player.getInventory();
 					String invname = args[1];
+						
+					YamlConfiguration inv = InvIO.invToConfig(currentinv);
 					
-					if(currentinv == null)
+					File invsave = new File(playerfile, invname + ext);
+					
+					File[] saves = playerfile.listFiles();
+					
+					if(saves.length >= config.getInt("maxinventories"))
 					{
-						sender.sendMessage(ChatColor.RED + "Error, inventory is null");
+						sender.sendMessage(ChatColor.YELLOW + "The maximum amount of available inventories has been reached.");
 						return true;
 					}
-						
-					String inv = InvIO.invToString(currentinv);
-					
-					File invsave = new File(playerfile, invname);
 					
 					if(invsave.exists())
 					{
@@ -59,55 +98,89 @@ public class InvSwap extends JavaPlugin
 					
 					try
 					{
-						PrintWriter writer = new PrintWriter(invsave);
-						writer.write(inv);
-						writer.close();
+						inv.save(invsave);
+						
+						sender.sendMessage(ChatColor.GREEN + "Saved inventory as " + invname);
 					}
-					catch(FileNotFoundException e)
+					catch(IOException e)
 					{
 						sender.sendMessage(ChatColor.RED + "An error occurred while attempting to save your inventory.");
-						this.getServer().getLogger().log(Level.WARNING, "Player " + player.getName() + " could not save inventory.");
+						this.getLogger().log(Level.WARNING, "Player " + player.getName() + " could not save inventory (" + e.getClass().getCanonicalName() + ")");
 					}
-					break;
+					return true;
 				case "load":
-					File invfile = new File(playerfile, args[1]);
+					if(!player.hasPermission("invswap.load"))
+					{
+						player.sendMessage(ChatColor.RED + "You do not have permission to do that");
+						return true;
+					}
+					File invfile = new File(playerfile, args[1] + ext);
 					if(invfile.exists())
 					{
-						try
-						{
-							Scanner reader = new Scanner(invfile);
-							String invstring = reader.nextLine();
-							
-							reader.close();
-							
-							Inventory playerinv = player.getInventory();
-							List<InvIO.JSONItemStack> inventory = InvIO.stringToItemList(invstring);
-							
-							playerinv.clear();
-							
-							for(InvIO.JSONItemStack item : inventory)
-							{
-								ItemStack itemstack = new ItemStack(Material.getMaterial(item.material), item.amount);
-								itemstack.setDurability(item.damage);
-								playerinv.setItem(item.position, itemstack);
-							}
-						}
-						catch(FileNotFoundException e)
-						{
-							player.sendMessage(ChatColor.RED + "An error occurred while attempting to load your inventory.");
-							this.getServer().getLogger().log(Level.WARNING, "Player " + player.getName() + " could not load inventory.");
-						}
+						player.getInventory().setContents(InvIO.fileToInventory(invfile, false).toArray(new ItemStack[0]));
+						player.sendMessage(ChatColor.GREEN + "Loaded inventory " + args[1]);
+						return true;
 					}
 					else
 					{
 						player.sendMessage(ChatColor.RED + "Inventory could not be found. Use /invswap list to see your inventories.");
+						return true;
 					}
-					break;
+				case "remove":
+					if(!player.hasPermission("invswap.save"))
+					{
+						player.sendMessage(ChatColor.RED + "You do not have permission to do that");
+						return true;
+					}
+					File todelete = new File(playerfile, args[1] + ext);
+					if(todelete.exists())
+					{
+						todelete.delete();
+						player.sendMessage(ChatColor.GREEN + "Inventory deleted");
+						return true;
+					}
+					else
+					{
+						player.sendMessage(ChatColor.RED + "Could not find inventory specified");
+						return true;
+					}
+				case "public":
+					if(args[1].equals("list"))
+					{
+						File[] invs = publicsaves.listFiles();
+						
+						List<String> strings = new ArrayList<String>();
+						
+						for(File f : invs)
+						{
+							strings.add(ChatColor.GREEN + f.getName());
+						}
+						player.sendMessage(ChatColor.GRAY + "All public inventories:");
+						for(String string : strings)
+						{
+							player.sendMessage(string);
+						}
+						return true;
+					}
+					if(args[1].equals("help"))
+					{
+						Scanner helpscan = new Scanner(this.getClass().getClassLoader().getResourceAsStream("publichelp.txt"));
+						while(helpscan.hasNext())
+						{
+							player.sendMessage(helpscan.nextLine());
+						}
+						helpscan.close();
+					}
 				}
-				case 1:
+			case 1:
 				switch(args[0])
 				{
 				case "list":
+					if(!playerfile.exists())
+					{
+						player.sendMessage(ChatColor.YELLOW + "No inventories have been saved");
+						return true;
+					}
 					File[] invs = playerfile.listFiles();
 					
 					List<String> strings = new ArrayList<String>();
@@ -116,20 +189,103 @@ public class InvSwap extends JavaPlugin
 					{
 						strings.add(ChatColor.GREEN + f.getName());
 					}
+					player.sendMessage(ChatColor.GRAY + "" + invs.length + " Inventories (Out of " + config.getInt("maxinventories") + " allowed)");
 					player.sendMessage(ChatColor.GRAY + "All of your inventories:");
 					for(String string : strings)
 					{
 						player.sendMessage(string);
 					}
 					return true;
+				case "removeall":
+					if(!player.hasPermission("invswap.save"))
+					{
+						player.sendMessage(ChatColor.RED + "You do not have permission to do that");
+						return true;
+					}
+					if(!playerfile.exists())
+					{
+						player.sendMessage(ChatColor.YELLOW + "No inventories have been saved");
+						return true;
+					}
+					File[] files = playerfile.listFiles();
+					for(File file : files)
+					{
+						file.delete();
+					}
+					player.sendMessage(ChatColor.GREEN + "All inventories removed");
+					return true;
+				case "help":
+					Scanner helpscan = new Scanner(this.getClass().getClassLoader().getResourceAsStream("help.txt"));
+					while(helpscan.hasNext())
+					{
+						player.sendMessage(helpscan.nextLine());
+					}
+					helpscan.close();
+				}
+				break;
+			case 3:
+				switch(args[0])
+				{
+				case "public":
+					switch(args[1])
+					{
+					case "save":
+						if(!player.hasPermission("invswap.publish"))
+						{
+							player.sendMessage(ChatColor.RED + "You do not have permission to do that.");
+							return true;
+						}
+						YamlConfiguration saveinv = InvIO.invToConfig(player.getInventory());
+						String name = args[2];
+						File savefile = new File(publicsaves, name);
+						try
+						{
+							saveinv.save(savefile);
+							player.sendMessage(ChatColor.GREEN + "Inventory added to public inventories");
+							return true;
+						}
+						catch(IOException e)
+						{
+							player.sendMessage(ChatColor.RED + "An error occurred, and the inventory could not be saved.");
+							return true;
+						}
+					case "remove":
+						if(!player.hasPermission("invswap.publish"))
+						{
+							player.sendMessage(ChatColor.RED + "You do not have permission to do that.");
+							return true;
+						}
+						File delfile = new File(publicsaves, args[2]);
+						delfile.delete();
+						player.sendMessage(ChatColor.GREEN + "Public save deleted");
+						return true;
+					case "load":
+						if(!player.hasPermission("invswap.load"))
+						{
+							player.sendMessage(ChatColor.RED + "You do not have permission to do that");
+							return true;
+						}
+						File invfile = new File(publicsaves, args[2]);
+						if(invfile.exists())
+						{
+							player.getInventory().setContents(InvIO.fileToInventory(invfile, false).toArray(new ItemStack[0]));
+							player.sendMessage(ChatColor.GREEN + "Loaded inventory " + args[1]);
+							return true;
+						}
+						else
+						{
+							player.sendMessage(ChatColor.RED + "Inventory could not be found. Use /invswap public list to see public inventories.");
+							return true;
+						}
+					}
 				}
 			}
+			return false;
 		}
 		else
 		{
 			sender.sendMessage(ChatColor.RED + "Only players can use that command");
 			return true;
 		}
-		return false;
 	}
 }

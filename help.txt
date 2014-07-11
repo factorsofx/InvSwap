@@ -1,0 +1,6 @@
+/invswap save <name>        - Saves current inventory as <name>
+/invswap load <name>        - Loads your inventory <name>
+/invswap remove <name>      - Removes your inventory <name>
+/invswap list               - Lists all of your inventories
+/invswap help               - View this file
+/invswap public help        - Views help on public saves

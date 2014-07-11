@@ -8,3 +8,28 @@ description: Allows you to have multiple inventories that you can swap to
 commands:
   invswap:
     description: Allows you to swap between your inventories
+
+permissions:
+  invswap.unlimited:
+    description: Allows you to have unlimited inventories
+    default: false
+  invswap.publish:
+    description: Allows you to publish a save to the public inventories
+    default: false
+  invswap.load:
+    description: Allows you to load your saves
+    default: true
+  invswap.save:
+    description: Allows you to save and remove your inventories
+    default: true
+  invswap.default:
+    description: Allows you to save and load inventories
+    children:
+      invswap.save: true
+      invswap.load: true
+  invswap.admin:
+    description: Allows you all inventory swap commands
+    children:
+      invswap.default: true
+      invswap.unlimited: true
+      invswap.publish: true
