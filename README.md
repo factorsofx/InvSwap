@@ -25,6 +25,7 @@ This plugin has several permissions.
 - invswap.load allows you to load inventories
 - invswap.default includes both of those and no others
 
+
 - invswap.unlimited allows you unlimited inventories, as opposed to the default limit (5)
 - invswap.publish allows you to save inventories to the public list
 - invswap.admin includes both of those AND invswap.default
