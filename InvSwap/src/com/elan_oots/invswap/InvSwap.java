@@ -84,7 +84,7 @@ public class InvSwap extends JavaPlugin
 				case "removeall":
 					return removeInventories(player, playerfile);
 				case "help":
-					
+					return helpMessage(player);
 				}
 				break;
 			case 3:
@@ -94,57 +94,15 @@ public class InvSwap extends JavaPlugin
 					switch(args[1])
 					{
 					case "save":
-						if(!player.hasPermission("invswap.publish"))
-						{
-							player.sendMessage(ChatColor.RED + "You do not have permission to do that.");
-							return true;
-						}
-						YamlConfiguration saveinv = InvIO.invToConfig(player.getInventory());
-						String name = args[2];
-						File savefile = new File(publicsaves, name);
-						try
-						{
-							saveinv.save(savefile);
-							player.sendMessage(ChatColor.GREEN + "Inventory added to public inventories");
-							return true;
-						}
-						catch(IOException e)
-						{
-							player.sendMessage(ChatColor.RED + "An error occurred, and the inventory could not be saved.");
-							return true;
-						}
+						return publicSave(args[2], player, publicsaves);
 					case "remove":
-						if(!player.hasPermission("invswap.publish"))
-						{
-							player.sendMessage(ChatColor.RED + "You do not have permission to do that.");
-							return true;
-						}
-						File delfile = new File(publicsaves, args[2]);
-						delfile.delete();
-						player.sendMessage(ChatColor.GREEN + "Public save deleted");
-						return true;
+						return publicRemove(args[2], player, publicsaves);
 					case "load":
-						if(!player.hasPermission("invswap.load"))
-						{
-							player.sendMessage(ChatColor.RED + "You do not have permission to do that");
-							return true;
-						}
-						File invfile = new File(publicsaves, args[2]);
-						if(invfile.exists())
-						{
-							player.getInventory().setContents(InvIO.fileToInventory(invfile).toArray(new ItemStack[0]));
-							player.sendMessage(ChatColor.GREEN + "Loaded inventory " + args[1]);
-							return true;
-						}
-						else
-						{
-							player.sendMessage(ChatColor.RED + "Inventory could not be found. Use /invswap public list to see public inventories.");
-							return true;
-						}
+						return publicLoad(args[2], player, publicsaves);
 					}
 				}
 			}
-			return false;
+			return publicHelp(player);
 		}
 		else
 		{
@@ -324,6 +282,63 @@ public class InvSwap extends JavaPlugin
 		}
 		helpscan.close();
 		return true;
+	}
+	
+	public boolean publicSave(String invname, Player player, File publicsaves)
+	{
+		if(!player.hasPermission("invswap.publish"))
+		{
+			player.sendMessage(ChatColor.RED + "You do not have permission to do that.");
+			return true;
+		}
+		YamlConfiguration saveinv = InvIO.invToConfig(player.getInventory());
+		String name = invname;
+		File savefile = new File(publicsaves, name);
+		try
+		{
+			saveinv.save(savefile);
+			player.sendMessage(ChatColor.GREEN + "Inventory added to public inventories");
+			return true;
+		}
+		catch(IOException e)
+		{
+			player.sendMessage(ChatColor.RED + "An error occurred, and the inventory could not be saved.");
+			return true;
+		}
+	}
+	
+	public boolean publicRemove(String invname, Player player, File publicsaves)
+	{
+		if(!player.hasPermission("invswap.publish"))
+		{
+			player.sendMessage(ChatColor.RED + "You do not have permission to do that.");
+			return true;
+		}
+		File delfile = new File(publicsaves, invname);
+		delfile.delete();
+		player.sendMessage(ChatColor.GREEN + "Public save deleted");
+		return true;
+	}
+	
+	public boolean publicLoad(String invname, Player player, File publicsaves)
+	{
+		if(!player.hasPermission("invswap.load"))
+		{
+			player.sendMessage(ChatColor.RED + "You do not have permission to do that");
+			return true;
+		}
+		File invfile = new File(publicsaves, invname);
+		if(invfile.exists())
+		{
+			player.getInventory().setContents(InvIO.fileToInventory(invfile).toArray(new ItemStack[0]));
+			player.sendMessage(ChatColor.GREEN + "Loaded inventory " + invname);
+			return true;
+		}
+		else
+		{
+			player.sendMessage(ChatColor.RED + "Inventory could not be found. Use /invswap public list to see public inventories.");
+			return true;
+		}
 	}
 	
 }
