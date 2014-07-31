@@ -1,3 +1,0 @@
-#   MaxInventories: Specifies the maximum amount of inventories allowed per player
-#   Compression: Specifies whether or not to use compression when storing inventories
-maxinventories: 10

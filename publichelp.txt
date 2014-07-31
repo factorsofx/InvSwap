@@ -1,4 +1,0 @@
-/invswap public list        - Lists all public inventories
-/invswap public load <name> - Loads public inventory <name>
-/invswap public save <name>     - Saves current inventory publicly as <name>
-/invswap public remove <name>   - Removes public inventory <name>
