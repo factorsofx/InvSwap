@@ -2,7 +2,6 @@ package com.elan_oots.invswap;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
@@ -25,8 +24,7 @@ public class InvSwap extends JavaPlugin
 	@Override
 	public void onEnable()
 	{
-		InputStreamReader defconfigreader = new InputStreamReader(this.getClass().getClassLoader().getResourceAsStream("defaultconfig.yml"));
-		defaultconfig = YamlConfiguration.loadConfiguration(defconfigreader);
+		this.saveDefaultConfig();
 		
 		File userconfig = new File(this.getDataFolder(), "config.yml");
 		if(!userconfig.exists())
