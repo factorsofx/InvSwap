@@ -134,8 +134,11 @@ public class InvSwap extends JavaPlugin
 		
 		if(saves.length >= config.getInt("maxinventories"))
 		{
-			player.sendMessage(ChatColor.YELLOW + "The maximum amount of available inventories has been reached.");
-			return true;
+			if(!player.hasPermission("invswap.unlimited"))
+			{
+				player.sendMessage(ChatColor.YELLOW + "The maximum amount of available inventories has been reached.");
+				return true;
+			}
 		}
 		
 		if(invsave.exists())
