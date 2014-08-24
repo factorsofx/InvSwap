@@ -32,7 +32,3 @@ This plugin has several permissions.
 
 To Do List
 ----------
-
-Add settings:
--  Limits on number of saves allowed
--  Compressed or readable saves
