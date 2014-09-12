@@ -7,6 +7,19 @@
   <description>Bukkit plugin for swapping inventories</description>
   <build>
     <sourceDirectory>src</sourceDirectory>
+    <resources>
+      <resource>
+        <targetPath>.</targetPath>
+        <filtering>true</filtering>
+        <directory>${basedir}</directory>
+        <includes>
+          <include>config.yml</include>
+          <include>plugin.yml</include>
+          <include>help.txt</include>
+          <include>publichelp.txt</include>
+        </includes>
+      </resource>
+    </resources>
     <plugins>
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
