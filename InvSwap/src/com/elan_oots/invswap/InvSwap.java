@@ -115,6 +115,11 @@ public class InvSwap extends JavaPlugin
 			return true;
 		}
 		
+		if (!invname.matches("[A-Za-z0-9_]+")) {
+		    player.sendMessage(ChatColor.RED + "Your inventory name must contain only letters, numbers, and underscores.");
+		    return true;
+		}
+		
 		if(!playerfile.exists())
 		{
 			playerfile.mkdirs();
@@ -162,6 +167,12 @@ public class InvSwap extends JavaPlugin
 			player.sendMessage(ChatColor.RED + "You do not have permission to do that");
 			return true;
 		}
+		
+		if (!invname.matches("[A-Za-z0-9_]+")) {
+            player.sendMessage(ChatColor.RED + "Inventory could not be found. Use /invswap list to see your inventories.");
+            return true;
+        }
+		
 		File invfile = new File(playerfile, invname);
 		if(invfile.exists())
 		{
@@ -183,6 +194,12 @@ public class InvSwap extends JavaPlugin
 			player.sendMessage(ChatColor.RED + "You do not have permission to do that");
 			return true;
 		}
+		
+		if (!invname.matches("[A-Za-z0-9_]+")) {
+            player.sendMessage(ChatColor.RED + "Could not find inventory specified");
+            return true;
+        }
+		
 		File todelete = new File(playerfile, invname);
 		if(todelete.exists())
 		{
@@ -290,6 +307,12 @@ public class InvSwap extends JavaPlugin
 			player.sendMessage(ChatColor.RED + "You do not have permission to do that.");
 			return true;
 		}
+		
+		if (!invname.matches("[A-Za-z0-9_]+")) {
+            player.sendMessage(ChatColor.RED + "Your inventory name must contain only letters, numbers, and underscores.");
+            return true;
+        }
+		
 		YamlConfiguration saveinv = InvIO.invToConfig(player.getInventory());
 		String name = invname;
 		File savefile = new File(publicsaves, name);
@@ -313,6 +336,12 @@ public class InvSwap extends JavaPlugin
 			player.sendMessage(ChatColor.RED + "You do not have permission to do that.");
 			return true;
 		}
+		
+		if (!invname.matches("[A-Za-z0-9_]+")) {
+            player.sendMessage(ChatColor.RED + "Could not find inventory specified");
+            return true;
+        }
+		
 		File delfile = new File(publicsaves, invname);
 		delfile.delete();
 		player.sendMessage(ChatColor.GREEN + "Public save deleted");
@@ -326,6 +355,12 @@ public class InvSwap extends JavaPlugin
 			player.sendMessage(ChatColor.RED + "You do not have permission to do that");
 			return true;
 		}
+		
+		if (!invname.matches("[A-Za-z0-9_]+")) {
+            player.sendMessage(ChatColor.RED + "Inventory could not be found. Use /invswap public list to see public inventories.");
+            return true;
+        }
+		
 		File invfile = new File(publicsaves, invname);
 		if(invfile.exists())
 		{
