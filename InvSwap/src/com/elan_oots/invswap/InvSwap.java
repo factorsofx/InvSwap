@@ -55,54 +55,50 @@ public class InvSwap extends JavaPlugin
 			File playerfile = new File(new File(this.getDataFolder(), "inventories"), player.getUniqueId().toString());
 			File publicsaves = new File(this.getDataFolder(), "public");
 			
-			switch(args.length)
-			{
-			case 2:
-				switch(args[0])
-				{
-				case "save":
-					return saveInventory(args[1], player, playerfile);
-				case "load":
-					return loadInventory(args[1], player, playerfile);
-				case "remove":
-					return removeInventory(args[1], player, playerfile);
-				case "public":
-					if(args[1].equals("list"))
-					{
-						return publicList(player, publicsaves);
-					}
-					if(args[1].equals("help"))
-					{
-						return publicHelp(player);
-					}
-				}
-			case 1:
-				switch(args[0])
-				{
-				case "list":
-					return listInventories(player, playerfile);
-				case "removeall":
-					return removeInventories(player, playerfile);
-				case "help":
-					return helpMessage(player);
-				}
-				break;
-			case 3:
-				switch(args[0])
-				{
-				case "public":
-					switch(args[1])
-					{
-					case "save":
-						return publicSave(args[2], player, publicsaves);
-					case "remove":
-						return publicRemove(args[2], player, publicsaves);
-					case "load":
-						return publicLoad(args[2], player, publicsaves);
-					}
-				}
+			if (args.length > 0) {
+			    if (args[0].equalsIgnoreCase("save")) {
+			        if (args.length > 1) {
+			            return saveInventory(args[1], player, playerfile);
+			        }
+			    }
+			    if (args[0].equalsIgnoreCase("load")) {
+			        if (args.length > 1) {
+			            return loadInventory(args[1], player, playerfile);
+			        }
+			    }
+			    if (args[0].equalsIgnoreCase("remove")) {
+			        if (args.length > 1) {
+			            return removeInventory(args[1], player, playerfile);
+			        }
+			    }
+			    if (args[0].equalsIgnoreCase("list")) {
+			        return listInventories(player, playerfile);
+			    }
+			    if (args[0].equalsIgnoreCase("public")) {
+			        if (args.length > 1) {
+			            if (args[1].equalsIgnoreCase("list")) {
+			                return publicList(player, publicsaves);
+			            }
+			            if (args[1].equalsIgnoreCase("load")) {
+			                if (args.length > 2) {
+			                    return publicLoad(args[2], player, publicsaves);
+			                }
+			            }
+			            if (args[1].equalsIgnoreCase("save")) {
+			                if (args.length > 2) {
+			                    return publicSave(args[2], player, publicsaves);
+			                }
+			            }
+			            if (args[1].equalsIgnoreCase("remove")) {
+			                if (args.length > 2) {
+			                    return publicRemove(args[2], player, publicsaves);
+			                }
+			            }
+			        }
+			        return publicHelp(player);
+			    }
 			}
-			return publicHelp(player);
+			return helpMessage(player);
 		}
 		else
 		{
@@ -117,6 +113,11 @@ public class InvSwap extends JavaPlugin
 		{
 			player.sendMessage(ChatColor.RED + "You do not have permission to do that");
 			return true;
+		}
+		
+		if (!invname.matches("[A-Za-z0-9_]+")) {
+		    player.sendMessage(ChatColor.RED + "Your inventory name must contain only letters, numbers, and underscores.");
+		    return true;
 		}
 		
 		if(!playerfile.exists())
@@ -166,6 +167,12 @@ public class InvSwap extends JavaPlugin
 			player.sendMessage(ChatColor.RED + "You do not have permission to do that");
 			return true;
 		}
+		
+		if (!invname.matches("[A-Za-z0-9_]+")) {
+            player.sendMessage(ChatColor.RED + "Inventory could not be found. Use /invswap list to see your inventories.");
+            return true;
+        }
+		
 		File invfile = new File(playerfile, invname);
 		if(invfile.exists())
 		{
@@ -187,6 +194,12 @@ public class InvSwap extends JavaPlugin
 			player.sendMessage(ChatColor.RED + "You do not have permission to do that");
 			return true;
 		}
+		
+		if (!invname.matches("[A-Za-z0-9_]+")) {
+            player.sendMessage(ChatColor.RED + "Could not find inventory specified");
+            return true;
+        }
+		
 		File todelete = new File(playerfile, invname);
 		if(todelete.exists())
 		{
@@ -294,6 +307,12 @@ public class InvSwap extends JavaPlugin
 			player.sendMessage(ChatColor.RED + "You do not have permission to do that.");
 			return true;
 		}
+		
+		if (!invname.matches("[A-Za-z0-9_]+")) {
+            player.sendMessage(ChatColor.RED + "Your inventory name must contain only letters, numbers, and underscores.");
+            return true;
+        }
+		
 		YamlConfiguration saveinv = InvIO.invToConfig(player.getInventory());
 		String name = invname;
 		File savefile = new File(publicsaves, name);
@@ -317,6 +336,12 @@ public class InvSwap extends JavaPlugin
 			player.sendMessage(ChatColor.RED + "You do not have permission to do that.");
 			return true;
 		}
+		
+		if (!invname.matches("[A-Za-z0-9_]+")) {
+            player.sendMessage(ChatColor.RED + "Could not find inventory specified");
+            return true;
+        }
+		
 		File delfile = new File(publicsaves, invname);
 		delfile.delete();
 		player.sendMessage(ChatColor.GREEN + "Public save deleted");
@@ -330,6 +355,12 @@ public class InvSwap extends JavaPlugin
 			player.sendMessage(ChatColor.RED + "You do not have permission to do that");
 			return true;
 		}
+		
+		if (!invname.matches("[A-Za-z0-9_]+")) {
+            player.sendMessage(ChatColor.RED + "Inventory could not be found. Use /invswap public list to see public inventories.");
+            return true;
+        }
+		
 		File invfile = new File(publicsaves, invname);
 		if(invfile.exists())
 		{
