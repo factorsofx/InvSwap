@@ -1,6 +1,6 @@
 main: com.elan_oots.invswap.InvSwap
 name: InventorySwap
-version: 1.0
+version: 1.1
 
 author: elan_oots
 description: Allows you to have multiple inventories that you can swap to
@@ -17,7 +17,7 @@ permissions:
     description: Allows you to publish a save to the public inventories
     default: false
   invswap.load:
-    description: Allows you to load your saves
+    description: Allows you to load and view your saves
     default: true
   invswap.save:
     description: Allows you to save and remove your inventories
