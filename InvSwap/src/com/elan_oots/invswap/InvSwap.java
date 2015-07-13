@@ -7,11 +7,13 @@ import java.util.List;
 import java.util.Scanner;
 import java.util.logging.Level;
 
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
+import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -73,6 +75,9 @@ public class InvSwap extends JavaPlugin
 			    }
 			    if (args[0].equalsIgnoreCase("list")) {
 			        return listInventories(player, playerfile);
+			    }
+			    if(args[0].equalsIgnoreCase("view")) {
+			    	return viewInventory(args[1], player, playerfile);
 			    }
 			    if (args[0].equalsIgnoreCase("public")) {
 			        if (args.length > 1) {
@@ -371,6 +376,35 @@ public class InvSwap extends JavaPlugin
 		else
 		{
 			player.sendMessage(ChatColor.RED + "Inventory could not be found. Use /invswap public list to see public inventories.");
+			return true;
+		}
+	}
+	
+	public boolean viewInventory(String invname, Player player, File playerfile)
+	{
+		if(!player.hasPermission("invswap.load"))
+		{
+			player.sendMessage(ChatColor.RED + "You do not have permission to do that");
+			return true;
+		}
+		
+		if (!invname.matches("[A-Za-z0-9_]+")) {
+            player.sendMessage(ChatColor.RED + "Inventory could not be found. Use /invswap list to see your inventories.");
+            return true;
+        }
+		
+		File invfile = new File(playerfile, invname);
+		
+		if(invfile.exists())
+		{
+			Inventory inv = Bukkit.createInventory(player, InventoryType.PLAYER, invname);
+			inv.setContents(InvIO.fileToInventory(invfile).toArray(new ItemStack[0]));
+			player.openInventory(inv);
+			return true;
+		}
+		else
+		{
+			player.sendMessage(ChatColor.RED + "Inventory not found.");
 			return true;
 		}
 	}
