@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>InvSwap</groupId>
   <artifactId>InvSwap</artifactId>
-  <version>0.0.1-SNAPSHOT</version>
+  <version>1.1</version>
   <name>InvSwap</name>
   <description>Bukkit plugin for swapping inventories</description>
   <build>
